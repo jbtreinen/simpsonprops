@@ -8,7 +8,7 @@ export const biz = {
   url: "https://simpsonprops.com",
   phone: "",        // Zach will add a tracking number when the CRM is connected
   phoneE164: "",
-  email: "simpsonpropsllc@gmail.com",
+  email: "simpson.propsllc@gmail.com",
   mailing: "13831 Peyton Dr, Dallas, TX 75240",
   region: "Little Rock and Central Arkansas",
   owner: "Zach Simpson",

@@ -44,7 +44,7 @@
     });
     var btn = form.querySelector("button[type=submit]");
     btn.disabled = true; btn.textContent = "Sending...";
-    fetch("https://formsubmit.co/ajax/simpsonpropsllc@gmail.com", {
+    fetch("https://formsubmit.co/ajax/simpson.propsllc@gmail.com", {
       method: "POST",
       headers: { "Content-Type": "application/json", Accept: "application/json" },
       body: JSON.stringify(data)
