@@ -22,6 +22,22 @@ const logo = `<a class="logo" href="/" aria-label="${biz.name} home">
 
 const phoneIcon = `<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg>`;
 
+// Approximate city centers, used for geo meta tags and schema.
+const geo = {
+  "little-rock": [34.7465, -92.2896], "north-little-rock": [34.7695, -92.2671], conway: [35.0887, -92.4421],
+  benton: [34.5645, -92.5868], bryant: [34.5959, -92.4890], cabot: [34.9745, -92.0165], sherwood: [34.8151, -92.2243],
+  jacksonville: [34.8662, -92.1101], maumelle: [34.8668, -92.4043], "hot-springs": [34.5037, -93.0552],
+};
+const nearby = (t) => towns.filter((o) => o.slug !== t.slug)
+  .map((o) => [o, Math.hypot(geo[o.slug][0] - geo[t.slug][0], geo[o.slug][1] - geo[t.slug][1])])
+  .sort((x, y) => x[1] - y[1]).slice(0, 4).map((x) => x[0]);
+const arkansas = { "@type": "State", name: "Arkansas", address: { "@type": "PostalAddress", addressRegion: "AR", addressCountry: "US" } };
+const cityLd = (t) => ({ "@type": "City", name: t.name, containedInPlace: [{ "@type": "AdministrativeArea", name: `${t.county}, Arkansas` }, arkansas],
+  geo: { "@type": "GeoCoordinates", latitude: geo[t.slug][0], longitude: geo[t.slug][1] } });
+
+const website = { "@context": "https://schema.org", "@type": "WebSite", "@id": `${biz.url}/#website`, url: biz.url, name: biz.name,
+  publisher: { "@id": `${biz.url}/#business` }, inLanguage: "en-US" };
+
 const localBusiness = {
   "@context": "https://schema.org",
   "@type": "LocalBusiness",
@@ -32,19 +48,26 @@ const localBusiness = {
   ...(biz.phoneE164 ? { telephone: biz.phoneE164 } : {}),
   email: biz.email,
   image: `${biz.url}/og.png`,
-  logo: `${biz.url}/favicon.svg`,
+  logo: `${biz.url}/logo.svg`,
+  slogan: "Sell your house for cash. As-is, on your timeline.",
+  currenciesAccepted: "USD",
   description: `${biz.name} buys houses for cash in ${biz.region}, as-is, with no repairs, commissions, or fees to the seller.`,
   priceRange: "$$",
   founder: { "@type": "Person", name: biz.owner },
-  areaServed: towns.map((t) => ({ "@type": "City", name: `${t.name}, AR` })),
+  areaServed: [
+    ...towns.map(cityLd),
+    { "@type": "GeoCircle", geoMidpoint: { "@type": "GeoCoordinates", latitude: 34.7465, longitude: -92.2896 }, geoRadius: "80000" },
+  ],
+  makesOffer: { "@type": "Offer", itemOffered: { "@type": "Service", "@id": `${biz.url}/#service`, name: "Cash home buying",
+    serviceType: "Cash home buyer", description: "We buy houses for cash as-is in Little Rock and Central Arkansas. No repairs, commissions, or fees to the seller." } },
   knowsAbout: ["selling a house for cash", "inherited property", "avoiding foreclosure", "selling a rental property", "selling a house as-is"],
 };
 
-function layout({ path, title, desc, body, schema = [], minimal = false, noindex = false }) {
+function layout({ path, title, desc, body, schema = [], minimal = false, noindex = false, place = ["Little Rock", ...geo["little-rock"]] }) {
   const canonical = biz.url + path;
-  const ld = [localBusiness, ...schema].map((s) => `<script type="application/ld+json">${JSON.stringify(s)}</script>`).join("\n");
+  const ld = [localBusiness, website, ...schema].map((s) => `<script type="application/ld+json">${JSON.stringify(s)}</script>`).join("\n");
   const nav = minimal ? "" : `<nav class="nav" aria-label="Main">
-      <a href="/how-it-works/">How it works</a><a href="/about/">About</a><a href="/faq/">FAQ</a></nav>`;
+      <a href="/how-it-works/">How it works</a><a href="/areas/">Areas</a><a href="/about/">About</a><a href="/faq/">FAQ</a></nav>`;
   pages.push({ path, noindex });
   return `<!doctype html>
 <html lang="en">
@@ -62,10 +85,18 @@ ${noindex ? '<meta name="robots" content="noindex">' : ""}
 <meta property="og:url" content="${canonical}">
 <meta property="og:image" content="${biz.url}/og.png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="theme-color" content="#1F3D2B">
+<meta name="theme-color" content="#14213D">
+<meta property="og:locale" content="en_US">
+<meta property="og:image:alt" content="${biz.name}: we buy houses for cash in ${biz.region}">
+<meta name="geo.region" content="US-AR">
+<meta name="geo.placename" content="${place[0]}, Arkansas">
+<meta name="geo.position" content="${place[1]};${place[2]}">
+<meta name="ICBM" content="${place[1]}, ${place[2]}">
+<link rel="apple-touch-icon" href="/logo.svg">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="/style.css">
 <!-- Google Ads / GA4 tag goes here when ads start -->
@@ -87,7 +118,7 @@ ${body}
       <p><a href="mailto:${biz.email}">${biz.email}</a></p></div>
     <div><h3>Areas we buy</h3><ul>${towns.map((t) => `<li><a href="/sell-my-house-fast-${t.slug}-ar/">${t.name}</a></li>`).join("")}</ul></div>
     <div><h3>Situations</h3><ul>${situations.map((s) => `<li><a href="/${s.slug}/">${s.title}</a></li>`).join("")}</ul></div>
-    <div><h3>Company</h3><ul><li><a href="/get-offer/">Get a cash offer</a></li><li><a href="/how-it-works/">How it works</a></li><li><a href="/about/">About</a></li><li><a href="/faq/">FAQ</a></li><li><a href="/privacy/">Privacy policy</a></li><li><a href="/terms/">Terms</a></li></ul></div>
+    <div><h3>Company</h3><ul><li><a href="/get-offer/">Get a cash offer</a></li><li><a href="/how-it-works/">How it works</a></li><li><a href="/areas/">Areas we serve</a></li><li><a href="/guides/sell-house-fast-little-rock/">Selling guide</a></li><li><a href="/about/">About</a></li><li><a href="/faq/">FAQ</a></li><li><a href="/privacy/">Privacy policy</a></li><li><a href="/terms/">Terms</a></li></ul></div>
   </div>
   <p class="legal">&copy; ${new Date().getFullYear()} ${biz.legal}. Mailing address: ${biz.mailing}. We are a real estate investment company, not a licensed real estate broker or agent, and we do not represent buyers or sellers. We may buy properties directly or assign our purchase contracts to other investors.</p>
 </div></footer>
@@ -264,9 +295,13 @@ for (const t of towns) {
   ];
   write(path, layout({
     path,
-    title: `Sell My House Fast ${t.name}, AR | Cash Home Buyers | ${biz.short}`,
+    title: `Sell My House Fast ${t.name}, AR | Cash Home Buyers`,
     desc: `Need to sell your house fast in ${t.name}, Arkansas? We buy houses for cash in any condition. No repairs, no commissions. Offer in 24 hours.`,
-    schema: [faqSchema(tfaq), crumbs([["Home", "/"], [`Sell my house fast ${t.name}`, path]])],
+    place: [t.name, ...geo[t.slug]],
+    schema: [faqSchema(tfaq), crumbs([["Home", "/"], ["Areas", "/areas/"], [`Sell my house fast ${t.name}`, path]]),
+      { "@context": "https://schema.org", "@type": "Service", name: `Cash home buying in ${t.name}, AR`, serviceType: "Cash home buyer",
+        provider: { "@id": `${biz.url}/#business` }, areaServed: cityLd(t), url: biz.url + path,
+        description: `We buy houses for cash in ${t.name}, ${t.county}, Arkansas. Any condition, no repairs, no commissions.` }],
     body: `
 <section class="hero"><div class="wrap hero-in">
   <div>
@@ -285,6 +320,10 @@ for (const t of towns) {
 ${steps}
 ${compare}
 <section class="sec"><div class="wrap narrow"><h2 class="h2">${t.name} questions</h2>${faqBlock(tfaq)}</div></section>
+<section class="sec alt"><div class="wrap">
+  <h2 class="h2">We also buy houses near ${t.name}</h2>
+  <ul class="chips">${nearby(t).map((o) => `<li><a href="/sell-my-house-fast-${o.slug}-ar/">${o.name}, AR</a></li>`).join("")}<li><a href="/areas/">All areas</a></li></ul>
+</div></section>
 ${finalCta(t.name)}`,
   }));
 }
@@ -294,7 +333,7 @@ for (const s of situations) {
   const path = `/${s.slug}/`;
   write(path, layout({
     path,
-    title: `${s.title} in Little Rock, AR | ${biz.short}`,
+    title: `${s.title.replace(/^Sell/, "Sell")} in Little Rock, AR | Cash Buyer`,
     desc: `${s.lead.split(". ")[0]}. Cash offers in Little Rock and Central Arkansas.`,
     schema: [crumbs([["Home", "/"], [s.title, path]])],
     body: `
@@ -309,6 +348,73 @@ ${finalCta()}`,
 }
 
 // ---------- simple pages ----------
+// ---------- areas hub ----------
+{
+  const counties = [...new Set(towns.map((t) => t.county))];
+  write("/areas/", layout({
+    path: "/areas/", title: `Areas We Buy Houses in Central Arkansas | ${biz.short}`,
+    desc: `We buy houses for cash across Central Arkansas: ${towns.map((t) => t.name).join(", ")}.`,
+    schema: [crumbs([["Home", "/"], ["Areas", "/areas/"]]),
+      { "@context": "https://schema.org", "@type": "ItemList", name: "Areas we buy houses",
+        itemListElement: towns.map((t, i) => ({ "@type": "ListItem", position: i + 1, name: `${t.name}, AR`, url: `${biz.url}/sell-my-house-fast-${t.slug}-ar/` })) }],
+    body: `<section class="sec"><div class="wrap narrow">
+  <h1 class="h1-sm">Where we buy houses</h1>
+  <p class="lede">We buy houses for cash in Little Rock and the towns around it, about an hour's drive in any direction. If your town is not listed, ask anyway.</p>
+</div></section>
+<section class="sec alt"><div class="wrap">
+  <div class="grid3">${counties.map((c) => `<div class="tile plain"><h2 class="h3">${c}</h2><ul class="plain-list">${towns.filter((t) => t.county === c)
+    .map((t) => `<li><a href="/sell-my-house-fast-${t.slug}-ar/">Sell my house fast in ${t.name}</a></li>`).join("")}</ul></div>`).join("")}</div>
+</div></section>
+${finalCta()}`,
+  }));
+}
+
+// ---------- guide (written to be quoted by search and AI answers) ----------
+{
+  const path = "/guides/sell-house-fast-little-rock/";
+  const qa = [
+    ["What is the fastest way to sell a house in Little Rock?",
+     "Selling directly to a local cash buyer is usually fastest. There is no listing, no showings, and no waiting on a buyer's loan. A cash sale in Little Rock commonly closes in about 30 days, which leaves time for a short inspection period and for the title company to clear title."],
+    ["How long does it take to sell a house with an agent in Arkansas?",
+     "It depends on the price, condition, and season. A listed house has to be prepped, shown, put under contract, and then wait for the buyer's financing, which often takes a few months from start to finish."],
+    ["How do cash home buyers decide what to offer?",
+     "A cash buyer starts with what similar nearby homes have sold for in good condition, then subtracts the cost of repairs, holding costs, and their profit. The offer is lower than full retail value because the buyer takes on the repairs, the risk, and the costs of the sale."],
+    ["Can I sell a house that needs major repairs?",
+     "Yes. Cash buyers purchase houses as-is, including ones with foundation, roof, plumbing, or water damage problems that would not pass a traditional buyer's inspection or a lender's appraisal."],
+    ["Can I sell an inherited house in Arkansas before probate is finished?",
+     "Often you can sign a purchase contract while the estate is being settled and close once the court gives the personal representative authority to sell. A title company or probate attorney can confirm what your case needs."],
+    ["What does it cost to sell a house for cash?",
+     "With a direct buyer like us there is no agent commission and no fee to the seller, and we pay the normal closing costs. Your mortgage and any liens are paid off from the sale at closing."],
+  ];
+  write(path, layout({
+    path, title: `How to Sell Your House Fast in Little Rock, AR (2026 Guide)`,
+    desc: "A plain-English guide to selling a house fast in Little Rock and Central Arkansas: your options, timelines, costs, and how cash offers work.",
+    schema: [crumbs([["Home", "/"], ["Selling guide", path]]), faqSchema(qa),
+      { "@context": "https://schema.org", "@type": "Article", headline: "How to sell your house fast in Little Rock, AR",
+        author: { "@type": "Person", name: biz.owner }, publisher: { "@id": `${biz.url}/#business` },
+        datePublished: "2026-10-08", dateModified: "2026-10-08", mainEntityOfPage: biz.url + path, about: cityLd(towns[0]) }],
+    body: `<section class="sec"><div class="wrap narrow prose">
+  <p class="eyebrow">Selling guide &middot; Little Rock, AR</p>
+  <h1 class="h1-sm">How to sell your house fast in Little Rock</h1>
+  <p class="lede">You have three main options: list with an agent, sell it yourself, or sell directly to a cash buyer. Here is how each one works, so you can pick the one that fits your house and your timeline.</p>
+  <h2>Your three options</h2>
+  <div class="table-wrap"><table class="compare">
+    <thead><tr><th></th><th>Cash buyer</th><th>Agent listing</th><th>For sale by owner</th></tr></thead>
+    <tbody>
+      <tr><th>Typical time to close</th><td>About 30 days</td><td>Often a few months</td><td>Varies widely</td></tr>
+      <tr><th>Repairs needed</th><td>None</td><td>Usually</td><td>Usually</td></tr>
+      <tr><th>Commission</th><td>None</td><td>Often 5 to 6%</td><td>Buyer's agent may expect one</td></tr>
+      <tr><th>Price</th><td>Below retail, as-is</td><td>Highest for a house in good shape</td><td>Depends on your marketing</td></tr>
+    </tbody></table></div>
+  ${qa.map(([q, a]) => `<h2>${q}</h2><p>${a}</p>`).join("")}
+  <h2>When a cash sale makes sense</h2>
+  <p>A cash sale is usually the better fit when the house needs work, when you need to sell on a deadline, or when you would rather trade some price for certainty. If your house is in great shape and you have time, listing may get you more. We are happy to tell you which way we think you should go.</p>
+  <p><a class="btn" href="/get-offer/">Get a no-obligation cash offer</a></p>
+  <p class="fine">General information only, not legal or tax advice. Written by ${biz.owner}, ${biz.name}.</p>
+</div></section>`,
+  }));
+}
+
 write("/how-it-works/", layout({
   path: "/how-it-works/", title: `How Selling Your House for Cash Works | ${biz.short}`,
   desc: "Three steps to sell your house for cash in Little Rock: tell us about it, get a written offer, close on your date.",
@@ -377,6 +483,8 @@ writeFileSync(`${OUT}/llms.txt`, `# ${biz.name}
 - [How it works](${biz.url}/how-it-works/)
 - [FAQ](${biz.url}/faq/)
 - [About](${biz.url}/about/)
+- [Areas we serve](${biz.url}/areas/)
+- [How to sell your house fast in Little Rock (guide)](${biz.url}/guides/sell-house-fast-little-rock/)
 
 ## Areas served
 ${towns.map((t) => `- [${t.name}, AR](${biz.url}/sell-my-house-fast-${t.slug}-ar/)`).join("\n")}

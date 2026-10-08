@@ -123,6 +123,11 @@ a.tile:hover{border-color:var(--navy);transform:translateY(-2px)}
 .cta .btn.ghost:hover{background:#fff;color:var(--navy)}
 .prose h2{font-family:var(--serif);font-size:1.35rem;margin-top:1.6em}
 
+.plain-list{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+.plain-list a{color:var(--grey);text-decoration:none}.plain-list a:hover{color:var(--navy);text-decoration:underline}
+.h3{font-family:var(--serif);font-size:1.2rem;font-weight:600}
+.prose .table-wrap{margin:8px 0 8px}
+
 /* footer */
 .foot{background:var(--navy-2);color:#B9C3D6;padding:56px 0 100px;font-size:.93rem}
 .foot a{color:#E7ECF5;text-decoration:none}
