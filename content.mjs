@@ -6,8 +6,8 @@ export const biz = {
   short: "Simpson Properties",
   domain: "simpsonprops.com",
   url: "https://simpsonprops.com",
-  phone: "(469) 490-6776",
-  phoneE164: "+14694906776",
+  phone: "",        // Zach will add a tracking number when the CRM is connected
+  phoneE164: "",
   email: "simpsonpropsllc@gmail.com",
   mailing: "13831 Peyton Dr, Dallas, TX 75240",
   region: "Little Rock and Central Arkansas",
@@ -60,7 +60,7 @@ export const situations = [
   { slug: "avoid-foreclosure", title: "Sell before foreclosure", h1: "Behind on payments? Sell before the foreclosure date.",
     lead: "If you are behind on your mortgage, selling before the sale date can protect your credit and may leave you with cash. Time matters, so call early.",
     points: [
-      ["Fast closings", "We can often close in a couple of weeks, depending on the title company and your lender."],
+      ["Fast closings", "We can often close in about 30 days, and sooner if the sale date is close. It depends on the title company and your lender."],
       ["We work with your lender", "The title company pays off your loan at closing. If you owe more than the house is worth, we can talk through options."],
       ["No pressure", "We will give you a straight answer on whether selling to us makes sense, even if it does not."],
     ] },
@@ -88,8 +88,8 @@ export const situations = [
   { slug: "relocating", title: "Sell fast when relocating", h1: "Moving for work or family? Sell on your schedule.",
     lead: "If you are moving and do not want to carry two houses, we can make an offer quickly and close on the date you pick.",
     points: [
-      ["Pick your date", "Close in a couple of weeks or a couple of months."],
-      ["Sell from anywhere", "Most of the sale can happen by phone, email, and e-signature."],
+      ["Pick your date", "Close in about 30 days, or later if you need more time."],
+      ["Sell from anywhere", "Most of the sale can happen by email and e-signature."],
       ["No showings", "No keeping the house spotless while you pack."],
     ] },
 ];
@@ -97,7 +97,7 @@ export const situations = [
 // FAQ. Question headings with direct answers (good for Google and AI answer engines).
 export const faqs = [
   ["How do I sell my house fast in Little Rock?",
-   "Call us or fill out the form with your address. We ask a few questions about the house, look at it once, and make a cash offer, usually within 24 hours. If you accept, a local title company handles the closing on the date you choose. There is no listing, no repairs, and no agent commission."],
+   "Fill out the short form with your address. We ask a few questions about the house, look at it once, and make a cash offer, usually within 24 hours. If you accept, a local title company handles the closing on the date you choose. There is no listing, no repairs, and no agent commission."],
   ["How much will you offer for my house?",
    "We look at what similar houses nearby have sold for, then subtract the repairs the house needs and our costs. You get a written number and we walk you through how we got it. You are never obligated to accept."],
   ["Do I have to make repairs or clean?",
@@ -105,7 +105,7 @@ export const faqs = [
   ["Are there any fees or commissions?",
    "No. You do not pay agent commissions or fees to us. We cover the normal closing costs, so the number we agree on is the number you can expect at closing, minus any loan payoff or liens on the property."],
   ["How fast can you close?",
-   "Often in about two weeks, depending on how quickly the title company can clear title. If you need more time, you pick the date."],
+   "Usually in about 30 days. That leaves time for a short inspection period and for the title company to clear title. If you need more time, you pick the date."],
   ["Are you real estate agents?",
    "No. We are a local real estate investment company. We are not your agent and do not represent you. You are welcome to have your own agent or attorney review any offer."],
   ["Will you be the one who buys my house?",
@@ -121,5 +121,5 @@ export const story = [
   "I'm Zach Simpson. I started Simpson Investment Properties for a simple reason: selling a house the normal way does not work for everyone.",
   "Some people inherit a house they never planned on owning. Some are behind on payments and running out of time. Some just do not have the money or energy to fix up a place before they sell it. For them, months of showings, repairs, and commissions is not a real option.",
   "What I offer is a straight answer. I will look at your house, tell you what I can pay and why, and if it works for you, we close on your timeline through a local title company. If it does not make sense for you to sell to me, I will tell you that too.",
-  "When you call, you talk to me. Not a call center.",
+  "When you reach out, you deal with me. Not a call center.",
 ];

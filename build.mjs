@@ -11,14 +11,14 @@ const css = readFileSync("src/style.css", "utf8");
 const js = readFileSync("src/main.js", "utf8");
 writeFileSync(`${OUT}/style.css`, css);
 writeFileSync(`${OUT}/main.js`, js.replace("__FORM_ENDPOINT__", FORM_ENDPOINT));
-for (const f of ["favicon.svg", "og.png"]) { try { writeFileSync(`${OUT}/${f}`, readFileSync(`src/${f}`)); } catch {} }
+for (const f of ["favicon.svg", "og.png", "logo.svg"]) { try { writeFileSync(`${OUT}/${f}`, readFileSync(`src/${f}`)); } catch {} }
 
 const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const pages = [];
 
 const logo = `<a class="logo" href="/" aria-label="${biz.name} home">
-  <svg width="30" height="30" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="var(--green)"/><path d="M8 16.5 16 9l8 7.5V24h-5.5v-5h-5v5H8z" fill="var(--paper)"/></svg>
-  <span><b>Simpson</b> Properties</span></a>`;
+  <img src="/logo.svg" alt="" width="40" height="40">
+  <span><b>Simpson</b> Investment Properties</span></a>`;
 
 const phoneIcon = `<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg>`;
 
@@ -29,7 +29,7 @@ const localBusiness = {
   name: biz.name,
   legalName: biz.legal,
   url: biz.url,
-  telephone: biz.phoneE164,
+  ...(biz.phoneE164 ? { telephone: biz.phoneE164 } : {}),
   email: biz.email,
   image: `${biz.url}/og.png`,
   logo: `${biz.url}/favicon.svg`,
@@ -76,7 +76,7 @@ ${ld}
 <header class="top"><div class="wrap top-in">
   ${logo}
   ${nav}
-  <a class="call" href="tel:${biz.phoneE164}">${phoneIcon}<span>${biz.phone}</span></a>
+  ${minimal ? "" : `<a class="btn btn-sm head-cta" href="/get-offer/">Get an offer</a>`}
 </div></header>
 <main id="main">
 ${body}
@@ -84,14 +84,14 @@ ${body}
 <footer class="foot"><div class="wrap">
   <div class="foot-grid">
     <div>${logo}<p>We buy houses for cash in ${biz.region}. As-is, no commissions, on your timeline.</p>
-      <p><a href="tel:${biz.phoneE164}">${biz.phone}</a><br><a href="mailto:${biz.email}">${biz.email}</a></p></div>
+      <p><a href="mailto:${biz.email}">${biz.email}</a></p></div>
     <div><h3>Areas we buy</h3><ul>${towns.map((t) => `<li><a href="/sell-my-house-fast-${t.slug}-ar/">${t.name}</a></li>`).join("")}</ul></div>
     <div><h3>Situations</h3><ul>${situations.map((s) => `<li><a href="/${s.slug}/">${s.title}</a></li>`).join("")}</ul></div>
     <div><h3>Company</h3><ul><li><a href="/get-offer/">Get a cash offer</a></li><li><a href="/how-it-works/">How it works</a></li><li><a href="/about/">About</a></li><li><a href="/faq/">FAQ</a></li><li><a href="/privacy/">Privacy policy</a></li><li><a href="/terms/">Terms</a></li></ul></div>
   </div>
   <p class="legal">&copy; ${new Date().getFullYear()} ${biz.legal}. Mailing address: ${biz.mailing}. We are a real estate investment company, not a licensed real estate broker or agent, and we do not represent buyers or sellers. We may buy properties directly or assign our purchase contracts to other investors.</p>
 </div></footer>
-<a class="sticky-call" href="tel:${biz.phoneE164}">${phoneIcon} Call ${biz.phone}</a>
+${minimal ? "" : `<a class="sticky-call" href="/get-offer/">Get my cash offer</a>`}
 <script src="/main.js" defer></script>
 </body>
 </html>`;
@@ -111,16 +111,15 @@ const quickForm = (heading = "Get your cash offer") => `
   <label for="qa">Property address</label>
   <input id="qa" name="address" autocomplete="street-address" placeholder="123 Main St, Little Rock" required>
   <button class="btn" type="submit">Get my offer</button>
-  <p class="fine">Or call <a href="tel:${biz.phoneE164}">${biz.phone}</a></p>
 </form>`;
 
 const trust = `<ul class="trust">
-  <li><b>$0</b> commissions</li><li><b>0</b> repairs</li><li><b>24 hr</b> offers</li><li><b>You</b> pick the date</li></ul>`;
+  <li><b>$0</b> commissions</li><li><b>0</b> repairs</li><li><b>24 hr</b> offers</li><li><b>30 days</b> to close, or your date</li></ul>`;
 
 const steps = `<section class="sec"><div class="wrap">
   <h2 class="h2">How it works</h2>
   <ol class="steps">
-    <li><span>1</span><h3>Tell us about the house</h3><p>Fill out the short form or call. Takes about two minutes.</p></li>
+    <li><span>1</span><h3>Tell us about the house</h3><p>Fill out the short form. Takes about a minute.</p></li>
     <li><span>2</span><h3>Get a fair cash offer</h3><p>We look at the house once and give you a written offer, usually within 24 hours.</p></li>
     <li><span>3</span><h3>Close when you want</h3><p>A local title company handles the paperwork. You get paid at closing.</p></li>
   </ol>
@@ -135,7 +134,7 @@ const compare = `<section class="sec alt"><div class="wrap">
       <tr><th>Repairs and cleaning</th><td>None, sell as-is</td><td>Usually expected</td></tr>
       <tr><th>Showings</th><td>One visit</td><td>Many, plus open houses</td></tr>
       <tr><th>Closing costs</th><td>We pay normal closing costs</td><td>Seller often pays part</td></tr>
-      <tr><th>Time to close</th><td>About 2 weeks, or your date</td><td>Often 2 to 4 months</td></tr>
+      <tr><th>Time to close</th><td>About 30 days, or your date</td><td>Often 2 to 4 months</td></tr>
       <tr><th>Risk of falling through</th><td>Low, no loan approval needed</td><td>Buyer financing can fail</td></tr>
     </tbody></table></div>
   <p class="fine">Listing can get a higher price for a house in great shape. A cash sale trades some price for speed, certainty, and no repairs. We will help you figure out which fits you.</p>
@@ -147,7 +146,7 @@ const situationGrid = `<section class="sec"><div class="wrap">
 </div></section>`;
 
 const aboutBlock = `<section class="sec alt"><div class="wrap about">
-  <div class="avatar" aria-hidden="true">ZS</div>
+  <img class="seal" src="/logo.svg" alt="${biz.name} logo" width="140" height="140">
   <div><h2 class="h2">A local buyer, not a call center</h2>
   <p class="lede">${story[0]}</p><p>${story[3]}</p>
   <a class="link" href="/about/">Read Zach's story</a></div>
@@ -158,7 +157,7 @@ const faqSchema = (list) => ({ "@context": "https://schema.org", "@type": "FAQPa
 
 const finalCta = (place = "Central Arkansas") => `<section class="sec cta"><div class="wrap cta-in">
   <div><h2 class="h2">Ready to see what your ${place} house is worth in cash?</h2><p>Get a no-obligation offer. If it does not work for you, no hard feelings.</p></div>
-  <div class="cta-btns"><a class="btn" href="/get-offer/">Get my cash offer</a><a class="btn ghost" href="tel:${biz.phoneE164}">Call ${biz.phone}</a></div>
+  <div class="cta-btns"><a class="btn" href="/get-offer/">Get my cash offer</a><a class="btn ghost" href="/how-it-works/">How it works</a></div>
 </div></section>`;
 
 const crumbs = (items) => ({ "@context": "https://schema.org", "@type": "BreadcrumbList",
@@ -170,7 +169,7 @@ write("/", layout({
   title: `Sell Your House Fast for Cash in Little Rock, AR | ${biz.short}`,
   desc: `We buy houses for cash in Little Rock and Central Arkansas. Any condition, no repairs, no commissions. Get a fair offer in 24 hours and close on your date.`,
   schema: [faqSchema(faqs.slice(0, 6)), { "@context": "https://schema.org", "@type": "HowTo", name: "How to sell your house for cash in Little Rock",
-    step: [["Tell us about the house", "Fill out the form or call."], ["Get a cash offer", "We visit once and make a written offer, usually within 24 hours."], ["Close on your date", "A local title company handles closing and you get paid."]]
+    step: [["Tell us about the house", "Fill out the short form."], ["Get a cash offer", "We visit once and make a written offer, usually within 24 hours."], ["Close on your date", "A local title company handles closing and you get paid."]]
       .map(([name, text], i) => ({ "@type": "HowToStep", position: i + 1, name, text })) }],
   body: `
 <section class="hero"><div class="wrap hero-in">
@@ -205,34 +204,42 @@ write("/get-offer/", layout({
   desc: "Tell us about your property and get a fair, no-obligation cash offer, usually within 24 hours.",
   body: `<section class="sec"><div class="wrap narrow">
   <h1 class="h1-sm">Get your cash offer</h1>
-  <p class="lede">Two quick steps. No obligation, and we never sell your information.</p>
+  <p class="lede">Takes about a minute. No obligation, and we never sell your information.</p>
   <form id="offer" class="card form" novalidate>
-    <div class="progress" aria-hidden="true"><span></span></div>
-    <fieldset data-step="1">
-      <legend>Step 1 of 2: The property</legend>
-      <label for="address">Property address</label>
-      <input id="address" name="address" autocomplete="street-address" required>
-      <label for="condition">What shape is it in?</label>
-      <select id="condition" name="condition" required><option value="">Choose one</option><option>Move-in ready</option><option>Needs a little work</option><option>Needs a lot of work</option><option>Not livable</option></select>
-      <label for="timeline">When do you want to sell?</label>
-      <select id="timeline" name="timeline" required><option value="">Choose one</option><option>As soon as possible</option><option>Within 30 days</option><option>1 to 3 months</option><option>Just exploring</option></select>
-      <button class="btn" type="button" data-next>Continue</button>
+    <fieldset>
+      <legend>Your name</legend>
+      <div class="cols2">
+        <div><label for="first">First name <span class="req">(required)</span></label><input id="first" name="first_name" autocomplete="given-name" required></div>
+        <div><label for="last">Last name <span class="req">(required)</span></label><input id="last" name="last_name" autocomplete="family-name" required></div>
+      </div>
     </fieldset>
-    <fieldset data-step="2" hidden>
-      <legend>Step 2 of 2: Where should we send your offer?</legend>
-      <label for="name">Your name</label>
-      <input id="name" name="name" autocomplete="name" required>
-      <label for="phone">Phone</label>
-      <input id="phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" required>
-      <label for="email">Email <span class="muted">(optional)</span></label>
-      <input id="email" name="email" type="email" autocomplete="email">
-      <label class="check"><input type="checkbox" name="sms_consent_service" value="yes"> <span>I agree to receive text messages from ${biz.legal} about my property inquiry and offer. Message frequency varies. Msg &amp; data rates may apply. Reply STOP to opt out, HELP for help. Consent is not a condition of any purchase.</span></label>
-      <label class="check"><input type="checkbox" name="sms_consent_marketing" value="yes"> <span>I agree to receive occasional marketing text messages from ${biz.legal}. Message frequency varies. Msg &amp; data rates may apply. Reply STOP to opt out, HELP for help. Consent is not a condition of any purchase.</span></label>
-      <p class="fine">By submitting, you agree to our <a href="/terms/">Terms</a> and <a href="/privacy/">Privacy Policy</a>. We will contact you about your property by phone or email.</p>
-      <input type="text" name="_honey" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
-      <div class="row"><button class="btn ghost" type="button" data-back>Back</button><button class="btn" type="submit">Get my offer</button></div>
-      <p class="form-error" role="alert" hidden>Something went wrong. Please call us at <a href="tel:${biz.phoneE164}">${biz.phone}</a>.</p>
+    <fieldset>
+      <legend>Property address</legend>
+      <label for="address">Address line 1 <span class="req">(required)</span></label>
+      <input id="address" name="address" autocomplete="address-line1" required>
+      <label for="address2">Address line 2</label>
+      <input id="address2" name="address2" autocomplete="address-line2">
+      <div class="cols3">
+        <div><label for="city">City <span class="req">(required)</span></label><input id="city" name="city" autocomplete="address-level2" required></div>
+        <div><label for="state">State <span class="req">(required)</span></label><input id="state" name="state" autocomplete="address-level1" value="AR" required></div>
+        <div><label for="zip">ZIP code <span class="req">(required)</span></label><input id="zip" name="zip" autocomplete="postal-code" inputmode="numeric" required></div>
+      </div>
     </fieldset>
+    <fieldset>
+      <legend>How can we reach you?</legend>
+      <div class="cols2">
+        <div><label for="phone">Phone number <span class="req">(required)</span></label><input id="phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" required></div>
+        <div><label for="email">Email</label><input id="email" name="email" type="email" autocomplete="email"></div>
+      </div>
+      <label for="reason">Briefly, why are you selling?</label>
+      <textarea id="reason" name="reason" rows="3" placeholder="Inherited the house, moving, behind on payments, needs repairs..."></textarea>
+    </fieldset>
+    <label class="check"><input type="checkbox" name="sms_consent_service" value="yes"> <span>I agree to receive text messages from ${biz.legal} about my property inquiry and offer. Message frequency varies. Msg &amp; data rates may apply. Reply STOP to opt out, HELP for help. Consent is not a condition of any purchase.</span></label>
+    <label class="check"><input type="checkbox" name="sms_consent_marketing" value="yes"> <span>I agree to receive occasional marketing text messages from ${biz.legal}. Message frequency varies. Msg &amp; data rates may apply. Reply STOP to opt out, HELP for help. Consent is not a condition of any purchase.</span></label>
+    <p class="fine">By submitting, you agree to our <a href="/terms/">Terms</a> and <a href="/privacy/">Privacy Policy</a>. We will contact you about your property.</p>
+    <input type="text" name="_honey" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+    <button class="btn submit" type="submit">Get my cash offer</button>
+    <p class="form-error" role="alert" hidden>Something went wrong. Please try again, or email us at <a href="mailto:${biz.email}">${biz.email}</a>.</p>
   </form>
 </div></section>`,
 }));
@@ -242,8 +249,7 @@ write("/thank-you/", layout({
   title: `Thank you | ${biz.short}`, desc: "We got your information.",
   body: `<section class="sec"><div class="wrap narrow center">
   <h1 class="h1-sm">Got it. Thank you.</h1>
-  <p class="lede">Zach will reach out shortly, usually the same day, to ask a few questions about the house.</p>
-  <p>Want to talk now? Call <a href="tel:${biz.phoneE164}">${biz.phone}</a>.</p>
+  <p class="lede">Zach will reach out shortly, usually the same day, to ask a few questions about the house and set up a time to see it.</p>
   <!-- Google Ads conversion event fires here when ads start -->
 </div></section>`,
 }));
@@ -252,7 +258,7 @@ write("/thank-you/", layout({
 for (const t of towns) {
   const path = `/sell-my-house-fast-${t.slug}-ar/`;
   const tfaq = [
-    [`How fast can I sell my house in ${t.name}?`, `We can usually make a written cash offer within 24 hours of seeing the house and close in about two weeks, depending on the title company. You can also pick a later date.`],
+    [`How fast can I sell my house in ${t.name}?`, `We can usually make a written cash offer within 24 hours of seeing the house and close in about 30 days, depending on the title company. You can also pick a later date.`],
     [`Do you buy houses in ${t.name} that need repairs?`, `Yes. We buy ${t.name} houses as-is, including ones with foundation, roof, plumbing, or other major problems. You do not need to fix or clean anything.`],
     [`Does it cost anything to sell my ${t.name} house to you?`, `No. There are no commissions or fees to us, and we pay the normal closing costs. Any mortgage or liens are paid off at closing.`],
   ];
@@ -307,7 +313,7 @@ write("/how-it-works/", layout({
   path: "/how-it-works/", title: `How Selling Your House for Cash Works | ${biz.short}`,
   desc: "Three steps to sell your house for cash in Little Rock: tell us about it, get a written offer, close on your date.",
   body: `<section class="sec"><div class="wrap narrow"><h1 class="h1-sm">How selling to us works</h1>
-  <p class="lede">Selling your house for cash takes three steps and usually about two weeks. You never pay commissions, and you do not fix anything.</p></div></section>
+  <p class="lede">Selling your house for cash takes three steps and usually about 30 days. You never pay commissions, and you do not fix anything.</p></div></section>
   ${steps}${compare}${finalCta()}`,
 }));
 
@@ -315,7 +321,7 @@ write("/about/", layout({
   path: "/about/", title: `About Zach Simpson | ${biz.name}`,
   desc: `Meet Zach Simpson, owner of ${biz.name}. We buy houses for cash in Little Rock and Central Arkansas.`,
   schema: [{ "@context": "https://schema.org", "@type": "AboutPage", about: { "@id": `${biz.url}/#business` } }],
-  body: `<section class="sec"><div class="wrap narrow"><div class="avatar big" aria-hidden="true">ZS</div>
+  body: `<section class="sec"><div class="wrap narrow"><img class="seal big" src="/logo.svg" alt="${biz.name} logo" width="160" height="160">
   <h1 class="h1-sm">Hi, I'm Zach.</h1>${story.map((p, i) => `<p${i === 0 ? ' class="lede"' : ""}>${p}</p>`).join("")}
   <p><a class="btn" href="/get-offer/">Get a cash offer</a></p></div></section>`,
 }));
@@ -337,8 +343,8 @@ write("/privacy/", layout({
 <h2>Text messaging</h2><p>If you check a text-message consent box, you agree to receive text messages from ${biz.legal} at the number you provided. Message frequency varies. Message and data rates may apply. Reply STOP to opt out at any time, or HELP for help. Consent is not a condition of any purchase.</p>
 <p><b>No mobile information will be shared with third parties or affiliates for marketing or promotional purposes. Text messaging originator opt-in data and consent will not be shared with any third parties.</b></p>
 <h2>Sharing</h2><p>We do not sell your personal information. We may share it with service providers who help us run our business (such as our form, email, and CRM tools), with a title company or attorney to complete a transaction you agree to, with a buyer or investor partner if we assign our contract (only the information needed to complete your sale), or when required by law.</p>
-<h2>Your choices</h2><p>You can ask us to update or delete your information or stop contacting you by emailing <a href="mailto:${biz.email}">${biz.email}</a> or calling ${biz.phone}.</p>
-<h2>Contact</h2><p>${biz.legal}<br>${biz.mailing}<br>${biz.phone}<br>${biz.email}</p></div></section>`,
+<h2>Your choices</h2><p>You can ask us to update or delete your information or stop contacting you by emailing <a href="mailto:${biz.email}">${biz.email}</a>.</p>
+<h2>Contact</h2><p>${biz.legal}<br>${biz.mailing}<br>${biz.email}</p></div></section>`,
 }));
 
 write("/terms/", layout({
@@ -346,10 +352,10 @@ write("/terms/", layout({
   body: `<section class="sec"><div class="wrap narrow prose"><h1 class="h1-sm">Terms and Conditions</h1><p class="muted">Last updated ${updated}</p>
 <p>By using ${biz.domain} you agree to these terms.</p>
 <h2>Who we are</h2><p>${biz.legal} is a real estate investment company. We are not a licensed real estate broker or agent and do not represent buyers or sellers. Submitting a form does not create a contract. Any purchase happens only under a signed written purchase agreement. We may purchase properties directly or assign our purchase contracts to other investors. You are encouraged to consult your own attorney or agent.</p>
-<h2>SMS program</h2><p>Program name: ${biz.name} Seller Updates. If you opt in, you will receive text messages about your property inquiry and offer, and, if you separately opt in, occasional marketing messages. Message frequency varies. Message and data rates may apply. Reply STOP to cancel at any time; you will receive one confirmation message. Reply HELP for help, or contact ${biz.phone} or ${biz.email}. Carriers are not liable for delayed or undelivered messages. See our <a href="/privacy/">Privacy Policy</a>.</p>
+<h2>SMS program</h2><p>Program name: ${biz.name} Seller Updates. If you opt in, you will receive text messages about your property inquiry and offer, and, if you separately opt in, occasional marketing messages. Message frequency varies. Message and data rates may apply. Reply STOP to cancel at any time; you will receive one confirmation message. Reply HELP for help, or contact ${biz.email}. Carriers are not liable for delayed or undelivered messages. See our <a href="/privacy/">Privacy Policy</a>.</p>
 <h2>No guarantees</h2><p>Offers depend on a property's condition, title, and market. Time frames on this site are typical, not promised.</p>
 <h2>Website content</h2><p>Information on this site is general and not legal, tax, or financial advice.</p>
-<h2>Contact</h2><p>${biz.legal}<br>${biz.mailing}<br>${biz.phone}<br>${biz.email}</p></div></section>`,
+<h2>Contact</h2><p>${biz.legal}<br>${biz.mailing}<br>${biz.email}</p></div></section>`,
 }));
 
 // ---------- 404, sitemap, robots, llms.txt, CNAME ----------
@@ -364,7 +370,7 @@ ${pages.filter((p) => !p.noindex).map((p) => `  <url><loc>${biz.url}${p.path}</l
 writeFileSync(`${OUT}/robots.txt`, `User-agent: *\nAllow: /\nDisallow: /thank-you/\n\nSitemap: ${biz.url}/sitemap.xml\n`);
 writeFileSync(`${OUT}/llms.txt`, `# ${biz.name}
 
-> ${biz.name} is a real estate investment company owned by ${biz.owner}. It buys houses for cash in ${biz.region}, as-is, with no repairs, commissions, or fees to the seller. Phone ${biz.phone}. Email ${biz.email}.
+> ${biz.name} is a real estate investment company owned by ${biz.owner}. It buys houses for cash in ${biz.region}, as-is, with no repairs, commissions, or fees to the seller. Email ${biz.email}.
 
 ## Key pages
 - [Get a cash offer](${biz.url}/get-offer/)
