@@ -50,6 +50,10 @@
       body: JSON.stringify(data)
     }).then(function (r) {
       if (!r.ok) throw new Error(r.status);
+      return r.json();
+    }).then(function (res) {
+      // FormSubmit answers 200 even when it did not send, so check its success flag.
+      if (String(res.success) !== "true") throw new Error(res.message || "not sent");
       location.href = "/thank-you/";
     }).catch(function () {
       btn.disabled = false; btn.textContent = "Get my cash offer";
